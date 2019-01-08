@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">DM_Application</string>
+
+    <string name="title_home">首页</string>
+    <string name="title_dashboard">福利</string>
+    <string name="title_mecenter">收藏</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="title_notifications">Notifications</string>
+</resources>

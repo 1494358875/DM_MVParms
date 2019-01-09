@@ -3,12 +3,16 @@ package com.dm.dm_application.mvp.presenter;
 import android.app.Application;
 
 import com.dm.dm_application.mvp.contract.DetailContract;
+import com.dm.dm_application.mvp.model.entity.DaoGankEntity;
 import com.dm.dm_application.mvp.model.entity.GankEntity;
 import com.jess.arms.di.scope.ActivityScope;
 import com.jess.arms.http.imageloader.ImageLoader;
 import com.jess.arms.integration.AppManager;
 import com.jess.arms.mvp.BasePresenter;
 import com.jess.arms.utils.RxLifecycleUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.inject.Inject;
 
@@ -41,6 +45,7 @@ public class DetailPresenter extends BasePresenter<DetailContract.Model, DetailC
     ImageLoader mImageLoader;
     @Inject
     AppManager mAppManager;
+    private DaoGankEntity daoGankEntity;
 
     @Inject
     public DetailPresenter(DetailContract.Model model, DetailContract.View rootView) {
@@ -55,14 +60,15 @@ public class DetailPresenter extends BasePresenter<DetailContract.Model, DetailC
         this.mImageLoader = null;
         this.mApplication = null;
     }
-    public void getGirl(){
+
+    public void getGirl() {
         mModel.getRandomGirl()
                 //在指定的{@link调度程序}上异步订阅此ObservableSource的观察者。
                 //返回默认的共享{@link调度器}实例，用于io绑定的工作。
                 .subscribeOn(Schedulers.io())
                 //返回一个可观察对象，该可观察对象发出的值与源可观察对象相同,否则，这个观察源将重新订阅源观察源
                 //对输入值应用一些计算并返回一些其他值。重试次数 3  重试延迟秒数 2
-                .retryWhen(new RetryWithDelay(3,2))
+                .retryWhen(new RetryWithDelay(3, 2))
                 //在指定的{@链接调度程序}上异步订阅此ObservableSource的观察者。
                 //一个{@链接调度程序}，它在Android主线程上执行操作
                 .subscribeOn(AndroidSchedulers.mainThread())
@@ -81,4 +87,42 @@ public class DetailPresenter extends BasePresenter<DetailContract.Model, DetailC
                     }
                 });
     }
+
+    public void getQuery(String id) {
+        mRootView.onFavoriteChange(mModel.queryById(id).size() > 0);
+    }
+
+    public void removeById(GankEntity.ResultsBean entity){
+        DaoGankEntity daoGankEntity = entityToDao(entity);
+        mModel.removeById(daoGankEntity._id);
+        mRootView.onFavoriteChange(false);
+    }
+
+    public void addToFavorites(GankEntity.ResultsBean entity){
+        DaoGankEntity daoGankEntity = entityToDao(entity);
+        mModel.addGankEntity(daoGankEntity);
+        mRootView.onFavoriteChange(true);
+    }
+
+    private DaoGankEntity entityToDao(GankEntity.ResultsBean entity) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date(System.currentTimeMillis());
+        String format = simpleDateFormat.format(date);
+        if (daoGankEntity == null) {
+            daoGankEntity = new DaoGankEntity();
+        }
+        daoGankEntity._id=entity._id;
+        daoGankEntity.createdAt=entity.createdAt;
+        daoGankEntity.desc=entity.desc;
+        daoGankEntity.publishedAt=entity.publishedAt;
+        daoGankEntity.source=entity.source;
+        daoGankEntity.type=entity.type;
+        daoGankEntity.url=entity.url;
+        daoGankEntity.used=entity.used;
+        daoGankEntity.who=entity.who;
+        daoGankEntity.addtime=format;
+        return daoGankEntity;
+    }
+
+
 }

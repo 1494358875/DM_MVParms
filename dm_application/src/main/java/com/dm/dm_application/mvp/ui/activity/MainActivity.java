@@ -114,6 +114,7 @@ public class MainActivity extends BaseActivity<MainPresenter> implements MainCon
 
     @Override
     public void initData(@Nullable Bundle savedInstanceState) {
+        ArmsUtils.statuInScreen(this);
         //隐藏ToolBar返回键
         toolbarBack.setVisibility(View.GONE);
         //初始化标题集合

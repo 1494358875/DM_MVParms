@@ -2,6 +2,8 @@ package com.dm.dm_application.mvp.model;
 
 import android.app.Application;
 
+import com.dm.dm_application.app.GreenDaoHelper;
+import com.dm.dm_application.app.greendao.DaoGankEntityDao;
 import com.dm.dm_application.mvp.contract.DetailContract;
 import com.dm.dm_application.mvp.model.api.service.CommonService;
 import com.dm.dm_application.mvp.model.entity.DaoGankEntity;
@@ -57,16 +59,22 @@ public class DetailModel extends BaseModel implements DetailContract.Model {
 
     @Override
     public List<DaoGankEntity> queryById(String id) {
-        return null;
+        return GreenDaoHelper.getDaoSession().getDaoGankEntityDao()
+                .queryBuilder()
+                .where(DaoGankEntityDao.Properties._id.eq(id))
+                .list();
     }
 
     @Override
     public void removeById(String id) {
-
+        GreenDaoHelper.getDaoSession().getDaoGankEntityDao()
+                .queryBuilder()
+                .where(DaoGankEntityDao.Properties._id.eq(id))
+                .buildDelete().executeDeleteWithoutDetachingEntities();
     }
 
     @Override
     public void addGankEntity(DaoGankEntity entity) {
-
+        GreenDaoHelper.getDaoSession().getDaoGankEntityDao().insert(entity);
     }
 }

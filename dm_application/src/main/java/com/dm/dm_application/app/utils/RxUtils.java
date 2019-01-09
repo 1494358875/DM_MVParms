@@ -33,7 +33,7 @@ public class RxUtils {
                 return observable.subscribeOn(Schedulers.io())
                         .doOnSubscribe(new Consumer<Disposable>() {
                             @Override
-                            public void accept(@NonNull Disposable disposable) throws Exception {
+                            public void accept(@NonNull Disposable disposable) {
                                 view. showLoading();//显示进度条
                             }
                         })

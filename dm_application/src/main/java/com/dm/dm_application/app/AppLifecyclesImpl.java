@@ -5,6 +5,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 
 import com.alibaba.android.arouter.launcher.ARouter;
+import com.dm.dm_application.BuildConfig;
 import com.jess.arms.base.delegate.AppLifecycles;
 import com.jess.arms.integration.cache.IntelligentCache;
 import com.jess.arms.utils.ArmsUtils;
@@ -12,9 +13,6 @@ import com.squareup.leakcanary.LeakCanary;
 import com.squareup.leakcanary.RefWatcher;
 
 import butterknife.ButterKnife;
-
-import com.dm.dm_application.BuildConfig;
-
 import timber.log.Timber;
 
 /**
@@ -70,6 +68,8 @@ public class AppLifecyclesImpl implements AppLifecycles {
         }
         // 尽可能早，推荐在Application中初始化
         ARouter.init(application);
+        //初始化greenDao
+        GreenDaoHelper.initDatabase(application);
     }
 
     @Override

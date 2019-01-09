@@ -1,9 +1,20 @@
 package com.dm.dm_application.mvp.ui.activity;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 
 import com.alibaba.android.arouter.facade.annotation.Route;
@@ -42,7 +53,15 @@ import static com.jess.arms.utils.Preconditions.checkNotNull;
 public class DetailActivity extends BaseActivity<DetailPresenter> implements DetailContract.View {
     @BindView(R.id.imageView)
     ImageView imageView;
+    @BindView(R.id.webview)
+    WebView webView;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    @BindView(R.id.fab)
+    FloatingActionButton fab;
+    int a = 0;
     private GankEntity.ResultsBean entity;
+    private boolean isFavorite;
 
     @Override
     public void setupActivityComponent(@NonNull AppComponent appComponent) {
@@ -61,9 +80,56 @@ public class DetailActivity extends BaseActivity<DetailPresenter> implements Det
 
     @Override
     public void initData(@Nullable Bundle savedInstanceState) {
-        entity=Parcels.unwrap(getIntent().getExtras().getParcelable(EventBusTags.EXTRA_DETAIL));
+        ArmsUtils.statuInScreen(this);
+        entity = Parcels.unwrap(getIntent().getExtras().getParcelable(EventBusTags.EXTRA_DETAIL));
         mPresenter.getGirl();
+        mPresenter.getQuery(entity._id);
+        if (toolbar != null) {
+            if (this instanceof AppCompatActivity) {
+                setSupportActionBar(toolbar);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    this.setActionBar(this.findViewById(R.id.toolbar));
+                    this.getActionBar().setDisplayShowTitleEnabled(false);
+                }
+            }
+        }
+        //增加到收藏夹
+        fab.setOnClickListener(v -> {
+            if (isFavorite) {
+                ArmsUtils.snackbarText("已移除收藏夹");
+                mPresenter.removeById(entity);
+            } else {
+                ArmsUtils.snackbarText("已添加到收藏夹");
+                mPresenter.addToFavorites(entity);
+            }
+        });
+
+        initWebView();
     }
+
+    private void initWebView() {
+        WebSettings settings = webView.getSettings();
+        //设置WebView是否应该启用对“视图端口”的支持
+        settings.setUseWideViewPort(true);
+        //设置WebView是否以overview模式加载页面
+        settings.setLoadWithOverviewMode(true);
+        //设置WebView是否应该支持使用屏幕缩放控件和手势进行缩放
+        settings.setSupportZoom(true);
+        //设置WebView是否应该使用其内置的缩放机制
+        settings.setBuiltInZoomControls(true);
+        //设置WebView在使用内置缩放机制时是否应该显示屏幕缩放控件
+        settings.setDisplayZoomControls(false);
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return true;
+            }
+        });
+        webView.loadUrl(entity.url);
+    }
+
 
     @Override
     public void showLoading() {
@@ -93,6 +159,25 @@ public class DetailActivity extends BaseActivity<DetailPresenter> implements Det
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public void setData(String url) {
         ArmsUtils.obtainAppComponentFromContext(this).imageLoader().loadImage(this,
                 ImageConfigImpl
@@ -104,6 +189,11 @@ public class DetailActivity extends BaseActivity<DetailPresenter> implements Det
 
     @Override
     public void onFavoriteChange(boolean isFavorite) {
-
+        this.isFavorite = isFavorite;
+        if (isFavorite) {
+            fab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent)));
+        } else {
+            fab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.C4)));
+        }
     }
 }
